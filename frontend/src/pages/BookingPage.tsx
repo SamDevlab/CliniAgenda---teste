@@ -102,7 +102,7 @@ export function BookingPage() {
 
       <section className="rounded-3xl border border-line bg-white p-5 shadow-card sm:p-7" aria-labelledby="booking-title">
         <div className="flex items-start justify-between gap-4">
-          <div><p className="text-xs font-bold uppercase tracking-[0.14em] text-sage">Passo 1 de 2</p><h2 id="booking-title" className="mt-2 font-display text-2xl font-extrabold tracking-[-0.05em] text-ink">Agende sua consulta</h2></div>
+          <div><h2 id="booking-title" className="mt-2 font-display text-2xl font-extrabold tracking-[-0.05em] text-ink">Agende sua consulta</h2></div>
         </div>
         <div className="mt-7"><DatePicker value={date} onChange={setDate} /></div>
         {loadingAvailability ? (

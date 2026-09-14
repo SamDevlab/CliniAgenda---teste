@@ -10,7 +10,6 @@ function App() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
           <NavLink to="/" aria-label="Ir para o início"><Brand /></NavLink>
           <nav className="flex items-center gap-1 rounded-xl border border-line bg-white p-1 text-sm font-bold" aria-label="Navegação principal">
-            <NavLink to="/" className={({ isActive }) => `rounded-lg px-3 py-2 transition ${isActive ? "bg-sage-soft text-sage-dark" : "text-muted hover:text-ink"}`}>Agendar</NavLink>
           </nav>
         </div>
       </header>
