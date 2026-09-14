@@ -1,4 +1,4 @@
-import { AlertCircle, ArrowRight, Check, CircleHelp, LoaderCircle, ShieldCheck } from "lucide-react";
+import { AlertCircle, ArrowRight, Check, CircleHelp, LoaderCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import { AppointmentForm } from "../components/AppointmentForm";
 import { DatePicker } from "../components/DatePicker";
@@ -93,11 +93,7 @@ export function BookingPage() {
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start">
       <section className="pt-2 lg:pt-8">
         <h1 className="max-w-xl font-display text-4xl font-extrabold leading-[1.08] tracking-[-0.06em] text-ink sm:text-5xl lg:text-6xl">Sua saúde merece um horário reservado para você.</h1>
-        <p className="mt-6 max-w-lg text-base leading-7 text-muted">Escolha o melhor dia e horário para sua consulta. Em poucos passos, tudo fica organizado.</p>
-        <div className="mt-9 grid gap-3 sm:grid-cols-2">
-          <div className="flex items-center gap-3 rounded-xl border border-line bg-white/70 p-3 text-sm font-semibold text-ink"><span className="grid size-9 place-items-center rounded-lg bg-sage-soft text-sage"><ShieldCheck size={18} /></span>Confirmação imediata</div>
-          <div className="flex items-center gap-3 rounded-xl border border-line bg-white/70 p-3 text-sm font-semibold text-ink"><span className="grid size-9 place-items-center rounded-lg bg-sage-soft text-sage"><ClockIcon /></span>Consultas de 1 hora</div>
-        </div>
+        <p className="mt-6 max-w-lg text-base leading-7 text-muted">Escolha o melhor dia e horário para sua consulta.</p>
       </section>
 
       <section className="rounded-3xl border border-line bg-white p-5 shadow-card sm:p-7" aria-labelledby="booking-title">
@@ -120,8 +116,4 @@ export function BookingPage() {
       </section>
     </div>
   );
-}
-
-function ClockIcon() {
-  return <span className="text-xs font-extrabold">1h</span>;
 }
