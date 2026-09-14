@@ -1,207 +1,74 @@
-# CliniAgenda---teste
+# CliniAgenda
 
-Sistema full stack para agendamento e gestão de consultas em clínicas.
+Sistema Full Stack de Agendamento e Gestão de Consultas.
 
-O projeto foi desenvolvido como teste técnico para uma vaga de Estágio Full Stack e simula um cenário real em que uma clínica precisa reduzir o atendimento manual relacionado à consulta de disponibilidade e criação de agendamentos.
+## Problema e objetivo
 
-Além do fluxo solicitado no desafio, o CliniSlot inclui uma área de gestão para que a clínica possa acompanhar e cancelar agendamentos.
+O CliniAgenda reduz o atendimento manual de uma clínica para consulta de horários e marcação de consultas. O paciente escolhe uma data, consulta os horários livres e confirma o agendamento. A equipe da clínica acompanha os registros em uma área de gestão simples.
 
----
+O projeto foi mantido como um MVP pequeno, com foco em regras de negócio corretas, persistência real, testes automatizados e uma experiência de uso clara.
 
-## 📌 Visão geral
+## Funcionalidades
 
-O CliniSlot possui duas áreas principais:
+### Área do paciente — `/`
 
-### Paciente
+- seleção de data;
+- indicação de finais de semana e feriados;
+- consulta de horários disponíveis;
+- seleção de um slot de uma hora;
+- formulário com nome e telefone;
+- confirmação imediata do agendamento;
+- mensagens de carregamento, erro e conflito.
 
-Permite:
+### Gestão da clínica — `/admin`
 
-- selecionar uma data;
-- consultar horários disponíveis;
-- identificar finais de semana e feriados;
-- escolher um horário;
-- informar os dados do paciente;
-- criar um agendamento;
-- visualizar a confirmação da consulta.
+- total de registros retornados pelo filtro;
+- quantidade de confirmados e cancelados;
+- listagem com paciente, telefone, data, horário e status;
+- filtros por data, status e nome;
+- cancelamento sem exclusão física;
+- liberação do horário depois do cancelamento.
 
-### Gestão da clínica
+Não há autenticação nessa tela porque ela ficou fora do escopo do teste. Em produção, a rota administrativa obrigatoriamente precisaria de autenticação, autorização e auditoria.
 
-Permite:
+## Regras de negócio
 
-- visualizar os agendamentos cadastrados;
-- consultar a agenda por data;
-- identificar agendamentos confirmados e cancelados;
-- pesquisar pacientes;
-- cancelar consultas;
-- liberar novamente um horário após cancelamento.
+- atendimento de 08:00 às 18:00;
+- consultas com duração de uma hora;
+- slots permitidos: `08:00`, `09:00`, `10:00`, `11:00`, `12:00`, `13:00`, `14:00`, `15:00`, `16:00` e `17:00`;
+- sábados e domingos não são dias de atendimento;
+- feriados não são dias de atendimento;
+- o backend valida a data e a disponibilidade novamente no POST;
+- um horário confirmado não pode ser reservado duas vezes;
+- cancelamentos são mantidos para preservar o histórico.
 
----
+As datas de negócio usam explicitamente o fuso `America/Bahia`, independentemente do fuso configurado no servidor.
 
-## 🎯 Objetivo
-
-O objetivo do projeto é automatizar parte do processo de agendamento de uma clínica.
-
-Em vez de depender exclusivamente de atendimento manual para responder perguntas como:
-
-- "Tem consulta para esse dia?"
-- "Qual horário está disponível?"
-- "Posso marcar para determinado horário?"
-
-o sistema permite que o próprio usuário consulte horários disponíveis e realize seu agendamento.
-
-Ao mesmo tempo, a clínica possui uma área própria para acompanhar os agendamentos realizados.
-
----
-
-## 🧠 Regras de negócio
-
-A clínica funciona das **08:00 às 18:00**.
-
-Cada consulta possui duração de **1 hora**.
-
-Os horários possíveis são:
+## Arquitetura e tecnologias
 
 ```text
-08:00
-09:00
-10:00
-11:00
-12:00
-13:00
-14:00
-15:00
-16:00
-17:00
+frontend (React + TypeScript + Vite + Tailwind)
+              │ REST / proxy local
+              ▼
+backend (Node.js + Express + TypeScript)
+       ┌──────┴────────┐
+       ▼               ▼
+    SQLite        Nager.Date
 ```
 
-O último horário disponível é `17:00`, pois a consulta termina às `18:00`.
+- Frontend: React, TypeScript, Vite, Tailwind CSS, React Router e Lucide.
+- Backend: Node.js, Express, TypeScript, Zod e Luxon.
+- Banco: SQLite por meio de `sql.js` em WebAssembly, com persistência em arquivo.
+- Testes: Vitest e Supertest.
+- Feriados: Nager.Date, consultada exclusivamente pelo backend.
 
-O sistema não permite agendamentos:
+## API
 
-- aos sábados;
-- aos domingos;
-- em feriados nacionais;
-- em horários já ocupados;
-- fora do horário de funcionamento;
-- com dados inválidos.
+O backend roda na porta `3333` por padrão.
 
-A validação é realizada no backend tanto na consulta de disponibilidade quanto no momento da criação do agendamento.
+### `GET /available?date=AAAA-MM-DD`
 
----
-
-## 🌎 Feriados
-
-Os feriados nacionais são consultados utilizando a API pública Nager.Date:
-
-```text
-https://date.nager.at/api/v3/PublicHolidays/2026/BR
-```
-
-A integração com a API é realizada pelo backend.
-
-Dessa forma, a regra de bloqueio de feriados não depende apenas do frontend.
-
----
-
-## 🔄 Fluxo de agendamento
-
-```text
-Paciente seleciona uma data
-          ↓
-Frontend consulta o backend
-          ↓
-Backend valida a data
-          ↓
-Verifica final de semana
-          ↓
-Consulta a API de feriados
-          ↓
-Consulta agendamentos existentes
-          ↓
-Calcula horários disponíveis
-          ↓
-Frontend apresenta os horários
-          ↓
-Paciente escolhe um horário
-          ↓
-Envia dados do agendamento
-          ↓
-Backend executa nova validação
-          ↓
-Agendamento é persistido
-          ↓
-Confirmação é retornada
-```
-
----
-
-## 🏗️ Arquitetura
-
-```text
-                ┌─────────────────────────┐
-                │        Frontend         │
-                │   React + TypeScript    │
-                └────────────┬────────────┘
-                             │
-                          REST API
-                             │
-                ┌────────────▼────────────┐
-                │         Backend         │
-                │ Node.js + Express + TS  │
-                └────────┬────────┬───────┘
-                         │        │
-                         │        └────────────────┐
-                         │                         │
-                 ┌───────▼────────┐       ┌────────▼─────────┐
-                 │     SQLite     │       │    Nager.Date    │
-                 │ Agendamentos   │       │ API de feriados  │
-                 └────────────────┘       └──────────────────┘
-```
-
----
-
-## 🧰 Tecnologias
-
-### Frontend
-
-- React
-- TypeScript
-- Vite
-- Tailwind CSS
-- React Router
-
-### Backend
-
-- Node.js
-- Express
-- TypeScript
-- Zod
-- Luxon
-
-### Banco de dados
-
-- SQLite
-
-### Testes
-
-- Vitest
-- Supertest
-
-### Integração externa
-
-- Nager.Date API
-
----
-
-## 📡 API
-
-### Consultar horários disponíveis
-
-```http
-GET /available?date=2026-09-16
-```
-
-Exemplo de resposta:
+Resposta em dia útil:
 
 ```json
 {
@@ -209,37 +76,13 @@ Exemplo de resposta:
   "timezone": "America/Bahia",
   "businessDay": true,
   "holiday": null,
-  "availableSlots": [
-    "08:00",
-    "09:00",
-    "10:00",
-    "11:00",
-    "12:00"
-  ]
+  "availableSlots": ["08:00", "09:00", "10:00"]
 }
 ```
 
-Exemplo em um feriado:
+Em feriado ou final de semana, `businessDay` é `false` e `availableSlots` é um array vazio. Quando for feriado, o campo `holiday` contém o nome retornado pela Nager.Date.
 
-```json
-{
-  "date": "2026-09-07",
-  "timezone": "America/Bahia",
-  "businessDay": false,
-  "holiday": "Independência do Brasil",
-  "availableSlots": []
-}
-```
-
----
-
-### Criar agendamento
-
-```http
-POST /appointments
-```
-
-Exemplo de requisição:
+### `POST /appointments`
 
 ```json
 {
@@ -250,218 +93,22 @@ Exemplo de requisição:
 }
 ```
 
-Exemplo de resposta:
+Retorna `201 Created` com o agendamento criado:
 
 ```json
 {
-  "id": 42,
+  "id": 1,
   "patientName": "Paciente Exemplo",
   "patientPhone": "00000000000",
   "date": "2026-09-16",
   "time": "10:00",
   "status": "CONFIRMED",
-  "createdAt": "2026-09-14T20:35:00Z"
+  "createdAt": "2026-09-14T20:35:00.000Z",
+  "updatedAt": "2026-09-14T20:35:00.000Z"
 }
 ```
 
----
-
-### Listar agendamentos
-
-```http
-GET /appointments
-```
-
-Retorna os agendamentos cadastrados no sistema.
-
-Exemplo:
-
-```json
-[
-  {
-    "id": 42,
-    "patientName": "Paciente Exemplo",
-    "patientPhone": "00000000000",
-    "date": "2026-09-16",
-    "time": "10:00",
-    "status": "CONFIRMED"
-  }
-]
-```
-
----
-
-### Cancelar agendamento
-
-```http
-PATCH /appointments/:id/cancel
-```
-
-O agendamento não é removido do banco.
-
-Seu status é alterado para:
-
-```text
-CANCELLED
-```
-
-Após o cancelamento, o horário anteriormente ocupado volta a aparecer como disponível.
-
----
-
-## 📋 Estados do agendamento
-
-O MVP utiliza dois estados:
-
-```text
-CONFIRMED
-CANCELLED
-```
-
-Agendamentos cancelados são preservados para manter o histórico das operações realizadas pela clínica.
-
----
-
-## 🖥️ Área do paciente
-
-A tela do paciente permite:
-
-- selecionar uma data;
-- visualizar os horários disponíveis;
-- receber feedback sobre finais de semana e feriados;
-- preencher nome e telefone;
-- escolher um horário;
-- confirmar o agendamento.
-
-Exemplo:
-
-```text
-Agendar consulta
-
-Data
-[ 16/09/2026 ]
-
-Horários disponíveis
-
-[08:00] [09:00] [10:00]
-[11:00] [12:00] [13:00]
-
-Nome
-[ Paciente Exemplo ]
-
-Telefone
-[ (71) 99999-9999 ]
-
-[ Confirmar agendamento ]
-```
-
-Após a conclusão:
-
-```text
-✓ Agendamento confirmado
-
-16/09/2026
-10:00
-```
-
----
-
-## 🏥 Área de gestão da clínica
-
-A área administrativa utiliza os dados do próprio fluxo de agendamento.
-
-Ela permite visualizar e organizar a agenda da clínica.
-
-Exemplo:
-
-```text
-Gestão de Agendamentos
-
-Hoje
-12 consultas
-
-[ Buscar paciente ] [ Data ] [ Status ]
-
-08:00  Maria Silva       Confirmado
-09:00  João Santos       Confirmado
-10:00  Paciente Exemplo     Confirmado
-11:00  Ana Souza         Cancelado
-```
-
-A gestão pode conter filtros por:
-
-- nome do paciente;
-- data;
-- status do agendamento.
-
----
-
-## 📊 Resumo da agenda
-
-A área administrativa também pode apresentar indicadores simples:
-
-```text
-┌────────────────┐
-│ Hoje           │
-│ 12 consultas   │
-└────────────────┘
-
-┌────────────────┐
-│ Confirmados    │
-│ 10             │
-└────────────────┘
-
-┌────────────────┐
-│ Cancelados     │
-│ 2              │
-└────────────────┘
-```
-
-O objetivo é fornecer uma visão rápida da agenda sem transformar o projeto em um dashboard complexo.
-
----
-
-## ⚠️ Prevenção de conflitos
-
-A disponibilidade exibida pelo frontend não é considerada garantia definitiva de reserva.
-
-Antes de salvar um agendamento, o backend executa novamente todas as validações.
-
-Além disso, a persistência deve impedir que duas requisições concorrentes reservem o mesmo horário.
-
-Exemplo:
-
-```text
-10:00 disponível
-      ↓
-Usuário A tenta reservar
-Usuário B tenta reservar
-      ↓
-Banco aceita apenas uma reserva
-      ↓
-Segunda tentativa recebe conflito
-```
-
-Esse comportamento evita duplicidade de agendamentos.
-
----
-
-## 🚨 Tratamento de erros
-
-A API utiliza códigos HTTP adequados para representar diferentes situações.
-
-Exemplos:
-
-```text
-200 OK
-201 Created
-400 Bad Request
-404 Not Found
-409 Conflict
-500 Internal Server Error
-```
-
-Exemplo de tentativa de reservar um horário ocupado:
+Em tentativa de reservar um slot confirmado, a API retorna `409 Conflict`:
 
 ```json
 {
@@ -470,404 +117,133 @@ Exemplo de tentativa de reservar um horário ocupado:
 }
 ```
 
-Exemplo de data inválida:
+### `GET /appointments`
 
-```json
-{
-  "error": "INVALID_DATE",
-  "message": "A data informada é inválida."
-}
-```
-
----
-
-## 📁 Estrutura do projeto
+Lista os registros persistidos. Aceita os filtros opcionais `date`, `status` (`CONFIRMED` ou `CANCELLED`) e `search`:
 
 ```text
-clinislot/
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── types/
-│   │   └── App.tsx
-│   │
-│   ├── package.json
-│   └── vite.config.ts
-│
-├── backend/
-│   ├── src/
-│   │   ├── routes/
-│   │   ├── services/
-│   │   ├── repositories/
-│   │   ├── schemas/
-│   │   ├── database/
-│   │   └── app.ts
-│   │
-│   ├── tests/
-│   └── package.json
-│
-├── README.md
-├── .gitignore
-└── .env.example
+GET /appointments?date=2026-09-16&status=CONFIRMED&search=Paciente
 ```
 
----
+Os status armazenados são `CONFIRMED` e `CANCELLED`; na interface aparecem como “Confirmado” e “Cancelado”.
 
-## 🧩 Organização do frontend
+### `PATCH /appointments/:id/cancel`
+
+Altera o status para `CANCELLED`, atualiza `updatedAt` e retorna o registro. A operação é idempotente: cancelar novamente o mesmo registro retorna o registro já cancelado. Um ID inexistente retorna `404 Not Found`.
+
+### `GET /health`
+
+Retorna `{ "status": "ok" }` para uma verificação simples do backend.
+
+## Feriados e falhas externas
+
+O `HolidayService` é a única camada responsável pela integração com:
 
 ```text
-frontend/src/
-├── components/
-│   ├── AppointmentForm.tsx
-│   ├── AppointmentTable.tsx
-│   ├── DatePicker.tsx
-│   ├── StatusBadge.tsx
-│   ├── SummaryCard.tsx
-│   └── TimeSlotGrid.tsx
-│
-├── pages/
-│   ├── BookingPage.tsx
-│   └── AppointmentsPage.tsx
-│
-├── services/
-│   └── api.ts
-│
-├── types/
-│   └── appointment.ts
-│
-└── App.tsx
+https://date.nager.at/api/v3/PublicHolidays/2026/BR
 ```
 
----
+O ano é montado a partir da data solicitada, mantendo a mesma API para outros anos. A resposta é armazenada em cache por ano durante a execução do backend. Falhas da Nager.Date retornam `502 Bad Gateway` com o erro `HOLIDAY_SERVICE_UNAVAILABLE`.
 
-## 🌐 Rotas do frontend
+Os testes usam um provedor de feriados em memória; portanto, não dependem da internet real.
 
-```text
-/
+## Persistência e prevenção de conflito
+
+A tabela `appointments` contém `id`, `patient_name`, `patient_phone`, `date`, `time`, `status`, `created_at` e `updated_at`.
+
+Além de consultar a disponibilidade, a inserção ocorre em transação SQLite e há um índice único parcial:
+
+```sql
+CREATE UNIQUE INDEX confirmed_appointment_slot
+ON appointments (date, time)
+WHERE status = 'CONFIRMED';
 ```
 
-Área de agendamento do paciente.
+Assim, registros cancelados continuam no histórico e o mesmo slot pode ser reutilizado, mas duas reservas confirmadas concorrentes não podem ocupar a mesma combinação de data e horário. A violação dessa restrição é convertida em `409 Conflict`.
 
-```text
-/admin
-```
-
-Área de gestão da clínica.
-
-A rota administrativa não possui autenticação neste MVP.
-
-Em um ambiente de produção, autenticação e controle de acesso seriam obrigatórios.
-
----
-
-## ▶️ Executando o projeto
+## Como executar
 
 ### Pré-requisitos
 
-- Node.js 20+
-- npm
+- Node.js 20 ou superior;
+- npm.
 
-Clone o repositório:
-
-```bash
-git clone <URL_DO_REPOSITORIO>
-cd clinislot
-```
-
----
-
-## Backend
-
-Entre na pasta:
-
-```bash
-cd backend
-```
-
-Instale as dependências:
+Na raiz do projeto:
 
 ```bash
 npm install
-```
-
-Execute o servidor:
-
-```bash
 npm run dev
 ```
 
----
+O frontend ficará em `http://localhost:5173` e o backend em `http://localhost:3333`. O Vite encaminha chamadas `/api` para o backend durante o desenvolvimento.
 
-## Frontend
-
-Em outro terminal:
+Para executar separadamente:
 
 ```bash
-cd frontend
+cd backend && npm run dev
+cd frontend && npm run dev
 ```
 
-Instale as dependências:
+Variáveis opcionais podem ser copiadas de `.env.example`. O banco é criado automaticamente em `backend/data/cliniagenda.db` quando o backend é iniciado a partir da pasta `backend`.
+
+## Como validar
+
+Na raiz, após `npm install`:
 
 ```bash
-npm install
-```
-
-Execute:
-
-```bash
-npm run dev
-```
-
-A aplicação ficará disponível no endereço informado pelo Vite.
-
----
-
-## 🧪 Testes
-
-Para executar os testes do backend:
-
-```bash
-cd backend
+npm run lint
+npm run typecheck
 npm test
+npm run build
 ```
 
-Entre os cenários cobertos estão:
+Ou execute tudo em sequência:
 
-- consulta de disponibilidade em dia útil;
-- bloqueio de sábado;
-- bloqueio de domingo;
-- bloqueio de feriado;
-- criação de agendamento válido;
-- tentativa de reservar horário já ocupado;
-- validação de data inválida;
-- validação de horários fora do funcionamento;
-- listagem de agendamentos;
-- cancelamento de agendamento;
-- liberação de horário após cancelamento;
-- tratamento de falha da API externa.
+```bash
+npm run check
+```
 
----
+A suíte cobre disponibilidade em dia útil, sábado, domingo, feriado, criação, conflitos, entradas inválidas, listagem, filtros, cancelamento, liberação de slot, ID inexistente e falha do serviço de feriados.
 
-## 🧪 Estratégia de testes
-
-A integração com a API de feriados fica isolada em uma camada própria.
-
-Exemplo:
+## Estrutura
 
 ```text
-HolidayService
+.
+├── backend
+│   ├── src
+│   │   ├── database
+│   │   ├── repositories
+│   │   ├── routes
+│   │   ├── schemas
+│   │   └── services
+│   └── tests
+├── frontend
+│   └── src
+│       ├── components
+│       ├── pages
+│       ├── services
+│       ├── types
+│       └── utils
+├── .env.example
+├── .gitignore
+└── package.json
 ```
 
-Durante os testes, essa dependência pode ser mockada.
+## Extensão do desafio
 
-Assim, a suíte não depende da disponibilidade da internet ou do serviço externo para executar corretamente.
+A gestão da clínica e o cancelamento foram adicionados como evolução do cenário solicitado. Eles reutilizam a mesma persistência do fluxo do paciente, sem introduzir autenticação ou infraestrutura adicional.
 
----
+## Limitações
 
-## 🕒 Fuso horário
+- `/admin` não possui autenticação;
+- a aplicação é um MVP;
+- não há múltiplos médicos;
+- não há múltiplas unidades;
+- não há notificações por WhatsApp ou e-mail;
+- não há reagendamento, pagamentos ou prontuário;
+- a agenda considera uma única clínica e uma única grade de horários;
+- a Nager.Date é uma dependência externa em produção.
 
-O sistema utiliza explicitamente o fuso:
+## Possíveis evoluções
 
-```text
-America/Bahia
-```
-
-Isso evita que datas e horários dependam implicitamente da configuração do servidor onde a aplicação está sendo executada.
-
----
-
-## 💾 Persistência
-
-O projeto utiliza SQLite para persistência dos agendamentos.
-
-Exemplo simplificado do modelo:
-
-```text
-appointments
-
-id
-patient_name
-patient_phone
-date
-time
-status
-created_at
-updated_at
-```
-
-Uma restrição de unicidade deve proteger combinações de data e horário consideradas ocupadas.
-
----
-
-## 💡 Decisões técnicas
-
-### Por que SQLite?
-
-O SQLite foi escolhido para facilitar a execução durante a avaliação.
-
-O avaliador consegue clonar o projeto e executá-lo sem precisar configurar um servidor externo de banco de dados.
-
-Apesar da simplicidade, existe persistência real.
-
-Em um cenário de produção, a camada de banco poderia ser migrada para PostgreSQL.
-
----
-
-### Por que consultar feriados no backend?
-
-A disponibilidade faz parte das regras de negócio.
-
-Por isso, não seria seguro depender apenas de uma validação feita no navegador.
-
-O backend consulta a API de feriados e valida novamente a data antes de criar qualquer agendamento.
-
----
-
-### Por que validar novamente ao criar a consulta?
-
-Existe um intervalo entre:
-
-```text
-consultar disponibilidade
-```
-
-e:
-
-```text
-confirmar agendamento
-```
-
-Durante esse período, outro usuário pode ter reservado o mesmo horário.
-
-Por isso, o backend nunca assume que um horário anteriormente exibido continua disponível.
-
----
-
-### Por que manter consultas canceladas?
-
-Em vez de excluir o registro, o sistema altera seu status.
-
-Isso permite preservar histórico e rastreabilidade.
-
----
-
-## ✨ Extensão do desafio
-
-O desafio original solicita:
-
-- consulta de horários disponíveis;
-- criação de agendamentos;
-- listagem de agendamentos;
-- persistência;
-- API REST;
-- integração com a API pública de feriados;
-- bloqueio de finais de semana;
-- bloqueio de feriados;
-- bloqueio de horários ocupados.
-
-Como extensão funcional, foi criada uma área de gestão da clínica.
-
-O objetivo dessa evolução é demonstrar como os dados gerados pelo fluxo de agendamento podem ser utilizados pela operação da própria clínica.
-
-A funcionalidade foi mantida propositalmente simples para não desviar do escopo principal do desafio.
-
----
-
-## 🔐 Segurança
-
-A área administrativa deste MVP não possui autenticação.
-
-Em produção, seria necessário implementar:
-
-- autenticação;
-- autorização;
-- controle de papéis;
-- proteção das rotas administrativas;
-- proteção contra abuso da API;
-- rate limiting;
-- logs de auditoria.
-
-A ausência dessas funcionalidades no projeto é uma decisão de escopo e não uma recomendação para um ambiente real.
-
----
-
-## 🚧 Limitações
-
-O CliniSlot representa um MVP.
-
-Algumas funcionalidades importantes para um produto real ficaram fora do escopo atual:
-
-- autenticação da área administrativa;
-- múltiplos usuários;
-- controle de permissões;
-- cadastro de médicos;
-- cadastro de especialidades;
-- múltiplas unidades;
-- agendas individuais;
-- reagendamento;
-- confirmação via WhatsApp;
-- confirmação por e-mail;
-- lembretes automáticos;
-- prontuário;
-- histórico clínico;
-- pagamentos;
-- integração com calendários externos;
-- observabilidade de produção.
-
----
-
-## 🚀 Possíveis evoluções
-
-Entre as próximas evoluções possíveis estão:
-
-- autenticação da equipe;
-- cadastro de profissionais;
-- especialidades médicas;
-- disponibilidade por profissional;
-- reagendamento;
-- confirmação por WhatsApp;
-- lembretes automáticos;
-- integração com Google Calendar;
-- dashboard operacional;
-- histórico completo de alterações;
-- PostgreSQL;
-- Docker;
-- CI/CD;
-- deploy em cloud.
-
----
-
-## ✅ Requisitos do desafio atendidos
-
-- [x] Frontend web
-- [x] Backend REST
-- [x] Persistência em banco de dados
-- [x] Consulta da API Nager.Date no backend
-- [x] Consulta de horários disponíveis
-- [x] Criação de agendamento
-- [x] Listagem de agendamentos
-- [x] Bloqueio de finais de semana
-- [x] Bloqueio de feriados
-- [x] Bloqueio de horários ocupados
-- [x] Horário de funcionamento entre 08:00 e 18:00
-- [x] Consultas com duração de 1 hora
-
-### Funcionalidades adicionais
-
-- [x] Área de gestão da clínica
-- [x] Cancelamento de agendamentos
-- [x] Liberação do horário após cancelamento
-- [x] Filtros de agenda
-- [x] Tratamento estruturado de erros
-- [x] Testes automatizados
-- [x] Proteção contra conflitos de horários
-
----
-
-## 👨‍💻 Autor
-
-**Samuel de Araújo da Silva**
-
-GitHub: [github.com/SamDevlab](https://github.com/SamDevlab)
+Autenticação da equipe, múltiplos profissionais e unidades, agendas independentes, reagendamento, notificações, auditoria, PostgreSQL e observabilidade são evoluções naturais para um ambiente real.
