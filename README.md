@@ -243,8 +243,8 @@ Exemplo de requisição:
 
 ```json
 {
-  "patientName": "Samuel Araújo",
-  "patientPhone": "71999999999",
+  "patientName": "Paciente Exemplo",
+  "patientPhone": "00000000000",
   "date": "2026-09-16",
   "time": "10:00"
 }
@@ -255,8 +255,8 @@ Exemplo de resposta:
 ```json
 {
   "id": 42,
-  "patientName": "Samuel Araújo",
-  "patientPhone": "71999999999",
+  "patientName": "Paciente Exemplo",
+  "patientPhone": "00000000000",
   "date": "2026-09-16",
   "time": "10:00",
   "status": "CONFIRMED",
@@ -280,8 +280,8 @@ Exemplo:
 [
   {
     "id": 42,
-    "patientName": "Samuel Araújo",
-    "patientPhone": "71999999999",
+    "patientName": "Paciente Exemplo",
+    "patientPhone": "00000000000",
     "date": "2026-09-16",
     "time": "10:00",
     "status": "CONFIRMED"
@@ -347,7 +347,7 @@ Horários disponíveis
 [11:00] [12:00] [13:00]
 
 Nome
-[ Samuel Araújo ]
+[ Paciente Exemplo ]
 
 Telefone
 [ (71) 99999-9999 ]
@@ -384,7 +384,7 @@ Hoje
 
 08:00  Maria Silva       Confirmado
 09:00  João Santos       Confirmado
-10:00  Samuel Araújo     Confirmado
+10:00  Paciente Exemplo     Confirmado
 11:00  Ana Souza         Cancelado
 ```
 
