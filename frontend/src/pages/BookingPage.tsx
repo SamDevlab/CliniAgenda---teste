@@ -92,7 +92,6 @@ export function BookingPage() {
   return (
     <div className="grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start">
       <section className="pt-2 lg:pt-8">
-        <div className="mb-7 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.16em] text-sage"><span className="size-2 rounded-full bg-sage" /> Atendimento simples e humano</div>
         <h1 className="max-w-xl font-display text-4xl font-extrabold leading-[1.08] tracking-[-0.06em] text-ink sm:text-5xl lg:text-6xl">Sua saúde merece um horário reservado para você.</h1>
         <p className="mt-6 max-w-lg text-base leading-7 text-muted">Escolha o melhor dia e horário para sua consulta. Em poucos passos, tudo fica organizado.</p>
         <div className="mt-9 grid gap-3 sm:grid-cols-2">
@@ -104,7 +103,6 @@ export function BookingPage() {
       <section className="rounded-3xl border border-line bg-white p-5 shadow-card sm:p-7" aria-labelledby="booking-title">
         <div className="flex items-start justify-between gap-4">
           <div><p className="text-xs font-bold uppercase tracking-[0.14em] text-sage">Passo 1 de 2</p><h2 id="booking-title" className="mt-2 font-display text-2xl font-extrabold tracking-[-0.05em] text-ink">Agende sua consulta</h2></div>
-          <span className="rounded-full bg-paper px-3 py-1.5 text-xs font-bold text-muted">America/Bahia</span>
         </div>
         <div className="mt-7"><DatePicker value={date} onChange={setDate} /></div>
         {loadingAvailability ? (
@@ -127,4 +125,3 @@ export function BookingPage() {
 function ClockIcon() {
   return <span className="text-xs font-extrabold">1h</span>;
 }
-

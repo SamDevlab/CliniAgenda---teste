@@ -53,7 +53,7 @@ export function AppointmentsPage() {
   return (
     <div>
       <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-        <div><p className="text-xs font-bold uppercase tracking-[0.16em] text-sage">Visão da clínica</p><h1 className="mt-2 font-display text-3xl font-extrabold tracking-[-0.06em] text-ink sm:text-4xl">Gestão de agendamentos</h1><p className="mt-3 text-sm text-muted">Acompanhe a agenda e mantenha tudo sob controle.</p></div>
+        <div><h1 className="mt-2 font-display text-3xl font-extrabold tracking-[-0.06em] text-ink sm:text-4xl">Gestão de agendamentos</h1><p className="mt-3 text-sm text-muted">Acompanhe a agenda e mantenha tudo sob controle.</p></div>
         <div className="flex items-center gap-2 text-xs font-semibold text-muted"><TrendingUp size={16} className="text-sage" /> Dados em tempo real</div>
       </div>
 

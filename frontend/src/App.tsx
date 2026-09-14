@@ -1,5 +1,4 @@
 import { NavLink, Route, Routes } from "react-router-dom";
-import { ArrowUpRight } from "lucide-react";
 import { Brand } from "./components/Brand";
 import { AppointmentsPage } from "./pages/AppointmentsPage";
 import { BookingPage } from "./pages/BookingPage";
@@ -12,7 +11,6 @@ function App() {
           <NavLink to="/" aria-label="Ir para o início"><Brand /></NavLink>
           <nav className="flex items-center gap-1 rounded-xl border border-line bg-white p-1 text-sm font-bold" aria-label="Navegação principal">
             <NavLink to="/" className={({ isActive }) => `rounded-lg px-3 py-2 transition ${isActive ? "bg-sage-soft text-sage-dark" : "text-muted hover:text-ink"}`}>Agendar</NavLink>
-            <NavLink to="/admin" className={({ isActive }) => `flex items-center gap-1 rounded-lg px-3 py-2 transition ${isActive ? "bg-sage-soft text-sage-dark" : "text-muted hover:text-ink"}`}>Gestão <ArrowUpRight size={14} /></NavLink>
           </nav>
         </div>
       </header>
