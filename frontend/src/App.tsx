@@ -9,8 +9,6 @@ function App() {
       <header className="border-b border-line/80 bg-paper/90 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4 sm:px-8">
           <NavLink to="/" aria-label="Ir para o início"><Brand /></NavLink>
-          <nav className="flex items-center gap-1 rounded-xl border border-line bg-white p-1 text-sm font-bold" aria-label="Navegação principal">
-          </nav>
         </div>
       </header>
       <main className="mx-auto max-w-7xl px-5 py-10 sm:px-8 sm:py-14">
