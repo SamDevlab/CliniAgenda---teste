@@ -16,7 +16,6 @@ export function TimeSlotGrid({ slots, selectedSlot, onSelect, disabled = false, 
           <Clock3 size={17} className="text-sage" aria-hidden="true" />
           Horários disponíveis
         </h2>
-        <span className="text-xs text-muted">Duração: 1 hora</span>
       </div>
       {slots.length ? (
         <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3" role="group" aria-label="Horários disponíveis">
