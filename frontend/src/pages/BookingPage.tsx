@@ -1,10 +1,10 @@
 import { AlertCircle, ArrowRight, Check, CircleHelp, LoaderCircle } from "lucide-react";
-import { useEffect, useState } from "react";
-import { AppointmentForm } from "../components/AppointmentForm";
+import { useEffect, useState, type FormEvent } from "react";
+import { AppointmentForm, AppointmentSubmitButton } from "../components/AppointmentForm";
 import { DatePicker } from "../components/DatePicker";
 import { TimeSlotGrid } from "../components/TimeSlotGrid";
 import { ApiError, createAppointment, getAvailability } from "../services/api";
-import type { Appointment, AppointmentInput, Availability } from "../types/appointment";
+import type { Appointment, Availability } from "../types/appointment";
 import { formatDateLong, getToday } from "../utils/date";
 
 function AvailabilityMessage({ availability }: { availability: Availability }) {
@@ -45,6 +45,8 @@ export function BookingPage() {
   const [submitting, setSubmitting] = useState(false);
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [error, setError] = useState("");
+  const [patientName, setPatientName] = useState("");
+  const [patientPhone, setPatientPhone] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -60,22 +62,41 @@ export function BookingPage() {
     return () => { active = false; };
   }, [date]);
 
-  async function handleSubmit(input: AppointmentInput) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (patientName.trim().length < 2) {
+      setError("Informe o nome do paciente.");
+      return;
+    }
+    if (patientPhone.replace(/\D/g, "").length < 10) {
+      setError("Informe um telefone válido.");
+      return;
+    }
+    if (!selectedTime) return;
+
     setSubmitting(true);
     setError("");
     try {
-      setAppointment(await createAppointment(input));
+      setAppointment(await createAppointment({
+        patientName: patientName.trim(),
+        patientPhone: patientPhone.trim(),
+        date,
+        time: selectedTime,
+      }));
     } catch (reason: unknown) {
       const message = reason instanceof ApiError && reason.code === "APPOINTMENT_CONFLICT"
         ? "Este horário acabou de ser reservado. Escolha outro horário."
         : reason instanceof Error ? reason.message : "Não foi possível confirmar o agendamento.";
       setError(message);
       if (reason instanceof ApiError && reason.code === "APPOINTMENT_CONFLICT") {
-        const refreshed = await getAvailability(date);
-        setAvailability(refreshed);
-        setSelectedTime("");
+        try {
+          const refreshed = await getAvailability(date);
+          setAvailability(refreshed);
+          setSelectedTime("");
+        } catch {
+          // A mensagem de conflito permanece visível mesmo se a atualização falhar.
+        }
       }
-      throw reason;
     } finally {
       setSubmitting(false);
     }
@@ -100,19 +121,30 @@ export function BookingPage() {
         <div className="flex items-start justify-between gap-4">
           <div><h2 id="booking-title" className="mt-2 font-display text-2xl font-extrabold tracking-[-0.05em] text-ink">Agende sua consulta</h2></div>
         </div>
-        <div className="mt-7"><DatePicker value={date} min={getToday()} onChange={setDate} /></div>
-        {loadingAvailability ? (
-          <div className="flex items-center gap-2 py-10 text-sm text-muted" role="status"><LoaderCircle size={18} className="animate-spin text-sage" /> Consultando horários...</div>
-        ) : error && !availability ? (
-          <div className="mt-5 flex items-start gap-3 rounded-xl bg-red-50 p-4 text-sm text-red-700" role="alert"><AlertCircle size={18} className="mt-0.5 shrink-0" />{error}</div>
-        ) : availability ? (
-          <>
-            <AvailabilityMessage availability={availability} />
-            {availability.businessDay && <div className="mt-7"><TimeSlotGrid slots={availability.availableSlots} selectedSlot={selectedTime} onSelect={setSelectedTime} emptyMessage={availability.unavailableMessage} /></div>}
-            {availability.businessDay && availability.availableSlots.length > 0 && <AppointmentForm date={date} time={selectedTime} loading={submitting} onSubmit={handleSubmit} />}
-            {error && availability && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700" role="alert">{error}</p>}
-          </>
-        ) : null}
+        <form className="mt-7 grid gap-6" onSubmit={handleSubmit} noValidate>
+          <AppointmentForm
+            name={patientName}
+            phone={patientPhone}
+            onNameChange={setPatientName}
+            onPhoneChange={setPatientPhone}
+          />
+          <DatePicker value={date} min={getToday()} onChange={setDate} />
+          {loadingAvailability ? (
+            <div className="flex items-center gap-2 py-4 text-sm text-muted" role="status"><LoaderCircle size={18} className="animate-spin text-sage" /> Consultando horários...</div>
+          ) : error && !availability ? (
+            <div className="flex items-start gap-3 rounded-xl bg-red-50 p-4 text-sm text-red-700" role="alert"><AlertCircle size={18} className="mt-0.5 shrink-0" />{error}</div>
+          ) : availability ? (
+            <>
+              <AvailabilityMessage availability={availability} />
+              {availability.businessDay && <TimeSlotGrid slots={availability.availableSlots} selectedSlot={selectedTime} onSelect={setSelectedTime} emptyMessage={availability.unavailableMessage} />}
+              {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700" role="alert">{error}</p>}
+            </>
+          ) : null}
+          <AppointmentSubmitButton
+            loading={submitting}
+            disabled={!availability?.businessDay || availability.availableSlots.length === 0 || !selectedTime}
+          />
+        </form>
       </section>
     </div>
   );
