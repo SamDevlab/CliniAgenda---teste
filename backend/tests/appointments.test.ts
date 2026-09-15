@@ -1,6 +1,8 @@
 import request from "supertest";
+import { DateTime } from "luxon";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp } from "../src/app.js";
+import { TIMEZONE } from "../src/config.js";
 import { HolidayServiceError } from "../src/errors.js";
 import type { Holiday, HolidayProvider } from "../src/services/holidayService.js";
 
@@ -26,11 +28,13 @@ function validAppointment(time = "10:00") {
 
 describe("API de agendamentos", () => {
   let app: Awaited<ReturnType<typeof createApp>>;
+  let now: DateTime;
 
   beforeEach(async () => {
+    now = DateTime.fromISO("2026-09-14T07:30:00", { zone: TIMEZONE });
     app = await createApp({ databasePath: ":memory:", holidayService: createHolidayProvider({
       [HOLIDAY]: { date: HOLIDAY, name: "Independência do Brasil" },
-    }) });
+    }), nowProvider: () => now });
   });
 
   afterEach(() => {
@@ -50,6 +54,24 @@ describe("API de agendamentos", () => {
     expect(response.body.availableSlots).toHaveLength(10);
     expect(response.body.availableSlots).toContain("08:00");
     expect(response.body.availableSlots).toContain("17:00");
+  });
+
+  it("não oferece horários que já começaram hoje", async () => {
+    now = DateTime.fromISO("2026-09-14T08:01:00", { zone: TIMEZONE });
+
+    const response = await request(app).get("/available?date=2026-09-14");
+
+    expect(response.status).toBe(200);
+    expect(response.body.availableSlots).not.toContain("08:00");
+    expect(response.body.availableSlots).toContain("09:00");
+  });
+
+  it("não oferece horários para uma data passada", async () => {
+    const response = await request(app).get("/available?date=2026-09-11");
+
+    expect(response.status).toBe(200);
+    expect(response.body.availableSlots).toEqual([]);
+    expect(response.body.unavailableMessage).toBe("Esta data já passou. Escolha outra data.");
   });
 
   it.each([
@@ -77,6 +99,28 @@ describe("API de agendamentos", () => {
     expect(response.body).toMatchObject({ ...validAppointment(), status: "CONFIRMED" });
     expect(response.body.id).toEqual(expect.any(Number));
     expect(response.body.createdAt).toEqual(expect.any(String));
+  });
+
+  it("rejeita uma consulta em um horário que já passou hoje", async () => {
+    now = DateTime.fromISO("2026-09-14T08:01:00", { zone: TIMEZONE });
+
+    const response = await request(app).post("/appointments").send({
+      ...validAppointment("08:00"),
+      date: "2026-09-14",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("APPOINTMENT_IN_PAST");
+  });
+
+  it("rejeita uma consulta em uma data passada", async () => {
+    const response = await request(app).post("/appointments").send({
+      ...validAppointment("10:00"),
+      date: "2026-09-11",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("APPOINTMENT_IN_PAST");
   });
 
   it("retorna conflito quando o horário está ocupado", async () => {

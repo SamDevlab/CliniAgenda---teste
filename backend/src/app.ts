@@ -1,5 +1,6 @@
 import cors from "cors";
 import express, { type ErrorRequestHandler } from "express";
+import type { DateTime } from "luxon";
 import { ZodError } from "zod";
 import { DATABASE_PATH } from "./config.js";
 import { createDatabase } from "./database/database.js";
@@ -12,13 +13,14 @@ import { HolidayService, type HolidayProvider } from "./services/holidayService.
 export interface AppOptions {
   databasePath?: string;
   holidayService?: HolidayProvider;
+  nowProvider?: () => DateTime;
 }
 
 export async function createApp(options: AppOptions = {}) {
   const database = await createDatabase(options.databasePath || DATABASE_PATH);
   const repository = new AppointmentRepository(database);
   const holidayService = options.holidayService || new HolidayService();
-  const availabilityService = new AvailabilityService(repository, holidayService);
+  const availabilityService = new AvailabilityService(repository, holidayService, options.nowProvider);
   const app = express();
 
   app.use(cors());

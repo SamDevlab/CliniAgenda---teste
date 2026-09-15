@@ -38,6 +38,7 @@ Não há autenticação nessa tela porque ela ficou fora do escopo do teste. Em 
 - slots permitidos: `08:00`, `09:00`, `10:00`, `11:00`, `12:00`, `13:00`, `14:00`, `15:00`, `16:00` e `17:00`;
 - sábados e domingos não são dias de atendimento;
 - feriados não são dias de atendimento;
+- datas passadas e horários que já começaram não podem ser agendados;
 - o backend valida a data e a disponibilidade novamente no POST;
 - um horário confirmado não pode ser reservado duas vezes;
 - cancelamentos são mantidos para preservar o histórico.
@@ -203,7 +204,7 @@ Ou execute tudo em sequência:
 npm run check
 ```
 
-A suíte cobre disponibilidade em dia útil, sábado, domingo, feriado, criação, conflitos, entradas inválidas, listagem, filtros, cancelamento, liberação de slot, ID inexistente e falha do serviço de feriados.
+A suíte cobre disponibilidade em dia útil, sábado, domingo, feriado, bloqueio de datas e horários passados, criação, conflitos, entradas inválidas, listagem, filtros, cancelamento, liberação de slot, ID inexistente e falha do serviço de feriados.
 
 ## Estrutura
 

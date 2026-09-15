@@ -5,9 +5,10 @@ interface TimeSlotGridProps {
   selectedSlot: string;
   onSelect: (slot: string) => void;
   disabled?: boolean;
+  emptyMessage?: string;
 }
 
-export function TimeSlotGrid({ slots, selectedSlot, onSelect, disabled = false }: TimeSlotGridProps) {
+export function TimeSlotGrid({ slots, selectedSlot, onSelect, disabled = false, emptyMessage }: TimeSlotGridProps) {
   return (
     <section aria-labelledby="available-times-title">
       <div className="mb-3 flex items-center justify-between gap-3">
@@ -42,10 +43,9 @@ export function TimeSlotGrid({ slots, selectedSlot, onSelect, disabled = false }
       ) : (
         <div className="flex items-start gap-3 rounded-xl border border-dashed border-line bg-paper p-4 text-sm text-muted">
           <Info size={18} className="mt-0.5 shrink-0 text-sage" aria-hidden="true" />
-          <span>Nenhum horário está disponível para esta data.</span>
+          <span>{emptyMessage || "Nenhum horário está disponível para esta data."}</span>
         </div>
       )}
     </section>
   );
 }
-

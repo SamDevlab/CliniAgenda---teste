@@ -32,6 +32,7 @@ export function createAppointmentRouter(
     const input = parsed.data;
     await availabilityService.validateBusinessDay(input.date);
     availabilityService.validateSlot(input.time);
+    availabilityService.validateFutureSlot(input.date, input.time);
 
     try {
       const appointment = repository.create({

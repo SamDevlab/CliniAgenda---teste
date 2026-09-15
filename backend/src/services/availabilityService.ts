@@ -23,6 +23,7 @@ export interface Availability {
   businessDay: boolean;
   holiday: string | null;
   availableSlots: string[];
+  unavailableMessage?: string;
 }
 
 export function parseBusinessDate(date: string): DateTime {
@@ -41,6 +42,7 @@ export class AvailabilityService {
   constructor(
     private readonly repository: AppointmentRepository,
     private readonly holidayService: HolidayProvider,
+    private readonly nowProvider: () => DateTime = () => DateTime.now().setZone(TIMEZONE),
   ) {}
 
   async getAvailability(date: string): Promise<Availability> {
@@ -66,13 +68,29 @@ export class AvailabilityService {
       };
     }
 
+    const now = this.nowProvider().setZone(TIMEZONE);
+    if (parsedDate.startOf("day") < now.startOf("day")) {
+      return {
+        date,
+        timezone: TIMEZONE,
+        businessDay: true,
+        holiday: null,
+        availableSlots: [],
+        unavailableMessage: "Esta data já passou. Escolha outra data.",
+      };
+    }
+
     const occupiedSlots = new Set(this.repository.listConfirmedTimes(date));
+    const futureSlots = BUSINESS_SLOTS.filter((slot) => DateTime.fromISO(`${date}T${slot}`, { zone: TIMEZONE }) > now);
     return {
       date,
       timezone: TIMEZONE,
       businessDay: true,
       holiday: null,
-      availableSlots: BUSINESS_SLOTS.filter((slot) => !occupiedSlots.has(slot)),
+      availableSlots: futureSlots.filter((slot) => !occupiedSlots.has(slot)),
+      ...(date === now.toISODate() && futureSlots.length === 0
+        ? { unavailableMessage: "Os horários de hoje já passaram. Escolha outra data." }
+        : {}),
     };
   }
 
@@ -99,5 +117,11 @@ export class AvailabilityService {
       );
     }
   }
-}
 
+  validateFutureSlot(date: string, time: string): void {
+    const startsAt = DateTime.fromISO(`${date}T${time}`, { zone: TIMEZONE });
+    if (startsAt <= this.nowProvider().setZone(TIMEZONE)) {
+      throw new AppError("APPOINTMENT_IN_PAST", "Não é possível agendar em uma data ou horário que já passou.");
+    }
+  }
+}

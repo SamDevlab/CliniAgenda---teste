@@ -100,7 +100,7 @@ export function BookingPage() {
         <div className="flex items-start justify-between gap-4">
           <div><h2 id="booking-title" className="mt-2 font-display text-2xl font-extrabold tracking-[-0.05em] text-ink">Agende sua consulta</h2></div>
         </div>
-        <div className="mt-7"><DatePicker value={date} onChange={setDate} /></div>
+        <div className="mt-7"><DatePicker value={date} min={getToday()} onChange={setDate} /></div>
         {loadingAvailability ? (
           <div className="flex items-center gap-2 py-10 text-sm text-muted" role="status"><LoaderCircle size={18} className="animate-spin text-sage" /> Consultando horários...</div>
         ) : error && !availability ? (
@@ -108,8 +108,8 @@ export function BookingPage() {
         ) : availability ? (
           <>
             <AvailabilityMessage availability={availability} />
-            {availability.businessDay && <div className="mt-7"><TimeSlotGrid slots={availability.availableSlots} selectedSlot={selectedTime} onSelect={setSelectedTime} /></div>}
-            {selectedTime && <AppointmentForm date={date} time={selectedTime} loading={submitting} onSubmit={handleSubmit} />}
+            {availability.businessDay && <div className="mt-7"><TimeSlotGrid slots={availability.availableSlots} selectedSlot={selectedTime} onSelect={setSelectedTime} emptyMessage={availability.unavailableMessage} /></div>}
+            {availability.businessDay && availability.availableSlots.length > 0 && <AppointmentForm date={date} time={selectedTime} loading={submitting} onSubmit={handleSubmit} />}
             {error && availability && <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm font-medium text-red-700" role="alert">{error}</p>}
           </>
         ) : null}

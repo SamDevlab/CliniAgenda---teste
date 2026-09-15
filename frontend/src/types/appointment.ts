@@ -17,6 +17,7 @@ export interface Availability {
   businessDay: boolean;
   holiday: string | null;
   availableSlots: string[];
+  unavailableMessage?: string;
 }
 
 export interface AppointmentInput {
@@ -25,4 +26,3 @@ export interface AppointmentInput {
   date: string;
   time: string;
 }
-
